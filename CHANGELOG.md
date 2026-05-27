@@ -8,6 +8,18 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-27
+
+### Added
+- Command-line interface. Install with `pip install 'bulkurlchecker[cli]'`,
+  then `bulkurlchecker check urls.txt > report.csv`. Subcommands:
+  - `check` — submit + wait + emit results to stdout (csv/json/jsonl).
+  - `submit` — submit and print the job id (no wait).
+  - `status` — print the current state of a job.
+  - `results` — fetch and emit results for a finished job.
+- `--only-broken` flag on `check` to filter to broken URLs only.
+- Reads `BULKURLCHECKER_API_KEY` from the environment, or `--api-key`.
+
 ## [0.1.0] - 2026-05-XX
 
 Initial release.

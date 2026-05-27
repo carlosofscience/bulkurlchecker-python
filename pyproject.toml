@@ -49,13 +49,20 @@ Documentation = "https://bulkurlchecker.com/developers"
 Changelog = "https://github.com/carlosofscience/bulkurlchecker-python/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
+cli = [
+    "click>=8",
+]
 dev = [
     "pytest>=7",
     "pytest-cov>=4",
     "responses>=0.23",  # mocks requests at the transport layer
     "ruff>=0.1",
     "mypy>=1.0",
+    "click>=8",
 ]
+
+[project.scripts]
+bulkurlchecker = "bulkurlchecker.cli:cli"
 
 [tool.setuptools]
 packages = ["bulkurlchecker"]

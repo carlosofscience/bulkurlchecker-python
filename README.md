@@ -53,6 +53,31 @@ results.broken           # list of URLResult where is_broken == True
 results.soft_404s        # list where is_soft_404 == True
 ```
 
+## Command-line usage
+
+Install with the `[cli]` extra to get the `bulkurlchecker` command:
+
+```bash
+pip install 'bulkurlchecker[cli]'
+export BULKURLCHECKER_API_KEY=uck_live_...
+
+# One URL per line in urls.txt → CSV on stdout
+bulkurlchecker check urls.txt > report.csv
+
+# Pipe from anywhere
+sitemap-extractor mydomain.com | bulkurlchecker check - --output jsonl > report.jsonl
+
+# Only show broken URLs, ad-hoc input
+bulkurlchecker check --urls "https://example.com,https://example.org" --only-broken
+
+# Two-step (submit, then poll & fetch later)
+JOB=$(bulkurlchecker submit urls.txt)
+bulkurlchecker status "$JOB"
+bulkurlchecker results "$JOB" --output csv > report.csv
+```
+
+Output formats: `csv` (default), `json`, `jsonl`. Run `bulkurlchecker check --help` for the full flag list.
+
 ## Larger jobs: submit and poll
 
 `check_urls()` blocks for up to 15 minutes server-side. For lists where the wait would time out, use the two-step pattern:
