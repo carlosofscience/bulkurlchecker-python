@@ -8,6 +8,10 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+### Changed
+- Dropped support for Python 3.8 (EOL October 2024). Minimum supported
+  version is now Python 3.9. Added Python 3.13 to the CI matrix.
+
 ## [0.2.0] - 2026-05-27
 
 ### Added
