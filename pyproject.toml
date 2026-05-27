@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bulkurlchecker"
+dynamic = ["version"]
+description = "Python client for the Bulk URL Checker API. Skip the proxy-rotation + rate-limiter + soft-404-detector you would otherwise have to build."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Bulk URL Checker", email = "carlos@bulkurlchecker.com"}
+]
+keywords = [
+    "url-checker",
+    "bulk-url-checker",
+    "broken-link-checker",
+    "http-status-checker",
+    "seo-tools",
+    "link-validator",
+    "url-validation",
+    "redirect-checker",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "requests>=2.25",
+]
+
+[project.urls]
+Homepage = "https://bulkurlchecker.com"
+Documentation = "https://bulkurlchecker.com/developers"
+"Source Code" = "https://github.com/carlosofscience/bulkurlchecker-python"
+"Bug Tracker" = "https://github.com/carlosofscience/bulkurlchecker-python/issues"
+Changelog = "https://github.com/carlosofscience/bulkurlchecker-python/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "pytest-cov>=4",
+    "responses>=0.23",  # mocks requests at the transport layer
+    "ruff>=0.1",
+    "mypy>=1.0",
+]
+
+[tool.setuptools]
+packages = ["bulkurlchecker"]
+
+[tool.setuptools.dynamic]
+version = {attr = "bulkurlchecker._version.__version__"}
+
+[tool.setuptools.package-data]
+bulkurlchecker = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]  # line length: covered by black if used
+
+[tool.mypy]
+strict = true
+warn_unused_ignores = true
