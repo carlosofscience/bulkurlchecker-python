@@ -21,7 +21,8 @@ import csv
 import json
 import os
 import sys
-from typing import IO, Any, Iterable
+from collections.abc import Iterable
+from typing import IO, Any
 
 import click
 

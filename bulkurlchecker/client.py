@@ -27,7 +27,8 @@ from __future__ import annotations
 import platform
 import sys
 import time
-from typing import Any, Iterable, Iterator
+from collections.abc import Iterable, Iterator
+from typing import Any
 
 import requests
 
