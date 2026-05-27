@@ -21,7 +21,7 @@ import csv
 import json
 import os
 import sys
-from typing import IO, Iterable
+from typing import IO, Any, Iterable
 
 import click
 
@@ -58,7 +58,7 @@ def _resolve_api_key(flag_value: str | None) -> str:
     return key
 
 
-def _emit_csv(results: Iterable, out: IO[str]) -> None:
+def _emit_csv(results: Iterable[Any], out: IO[str]) -> None:
     writer = csv.writer(out)
     writer.writerow([
         "url", "status_code", "final_url", "is_broken",
@@ -76,7 +76,7 @@ def _emit_csv(results: Iterable, out: IO[str]) -> None:
         ])
 
 
-def _emit_json(results: Iterable, out: IO[str]) -> None:
+def _emit_json(results: Iterable[Any], out: IO[str]) -> None:
     rows = [
         {
             "url": r.url,
@@ -93,7 +93,7 @@ def _emit_json(results: Iterable, out: IO[str]) -> None:
     out.write("\n")
 
 
-def _emit_jsonl(results: Iterable, out: IO[str]) -> None:
+def _emit_jsonl(results: Iterable[Any], out: IO[str]) -> None:
     for r in results:
         json.dump(
             {

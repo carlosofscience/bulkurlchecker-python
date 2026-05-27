@@ -27,7 +27,7 @@ from __future__ import annotations
 import platform
 import sys
 import time
-from typing import Iterable, Iterator
+from typing import Any, Iterable, Iterator
 
 import requests
 
@@ -226,7 +226,7 @@ class Client:
             raise ValidationError("No valid URLs provided.")
         return out
 
-    def _request(self, method: str, path: str, **kwargs):
+    def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         url = f"{self.base_url}{path}"
         try:
             resp = self._session.request(method, url, timeout=self.timeout, **kwargs)
@@ -239,7 +239,7 @@ class Client:
 
         return self._handle_response(resp)
 
-    def _handle_response(self, resp: requests.Response):
+    def _handle_response(self, resp: requests.Response) -> Any:
         request_id = resp.headers.get("X-Request-ID")
         if 200 <= resp.status_code < 300:
             try:
@@ -272,18 +272,21 @@ class Client:
             pass
 
         status = resp.status_code
-        common = {
-            "status_code": status,
-            "code": code,
-            "request_id": request_id,
-            "details": details,
-        }
         if status in (401, 403) and code == "no_credits":
-            raise QuotaError(message, **common)
+            raise QuotaError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if status in (401, 403):
-            raise AuthenticationError(message, **common)
+            raise AuthenticationError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if status == 404:
-            raise NotFoundError(message, **common)
+            raise NotFoundError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if status == 429:
             retry_after = None
             ra = resp.headers.get("Retry-After")
@@ -292,11 +295,26 @@ class Client:
                     retry_after = int(float(ra))
                 except (TypeError, ValueError):
                     retry_after = None
-            raise RateLimitError(message, retry_after=retry_after, **common)
+            raise RateLimitError(
+                message, retry_after=retry_after, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if status == 402:
-            raise QuotaError(message, **common)
+            raise QuotaError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if status in (400, 422):
-            raise ValidationError(message, **common)
+            raise ValidationError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
         if 500 <= status < 600:
-            raise ServerError(message, **common)
-        raise BulkURLCheckerError(message, **common)
+            raise ServerError(
+                message, status_code=status, code=code,
+                request_id=request_id, details=details,
+            )
+        raise BulkURLCheckerError(
+            message, status_code=status, code=code,
+            request_id=request_id, details=details,
+        )
