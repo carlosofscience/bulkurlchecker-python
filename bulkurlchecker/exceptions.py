@@ -8,7 +8,7 @@ authentication, rate limiting, quota, and validation.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 
 class BulkURLCheckerError(Exception):
@@ -23,10 +23,10 @@ class BulkURLCheckerError(Exception):
         self,
         message: str,
         *,
-        status_code: Optional[int] = None,
-        code: Optional[str] = None,
-        request_id: Optional[str] = None,
-        details: Optional[Any] = None,
+        status_code: int | None = None,
+        code: str | None = None,
+        request_id: str | None = None,
+        details: Any | None = None,
     ) -> None:
         super().__init__(message)
         self.status_code = status_code
@@ -52,7 +52,7 @@ class AuthenticationError(BulkURLCheckerError):
 class RateLimitError(BulkURLCheckerError):
     """429. Slow down. Inspect `retry_after` (seconds) if present."""
 
-    def __init__(self, *args: Any, retry_after: Optional[int] = None, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, retry_after: int | None = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.retry_after = retry_after
 

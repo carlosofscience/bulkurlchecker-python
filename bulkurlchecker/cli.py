@@ -21,7 +21,7 @@ import csv
 import json
 import os
 import sys
-from typing import IO, Iterable, List, Optional
+from typing import IO, Iterable
 
 import click
 
@@ -34,10 +34,10 @@ from .exceptions import (
 )
 
 
-def _read_urls(source: IO[str]) -> List[str]:
+def _read_urls(source: IO[str]) -> list[str]:
     """Read URLs one per line from a file or stdin. Skips empty lines and
     a leading 'url'/'urls'/'link' header if it's the very first row."""
-    urls: List[str] = []
+    urls: list[str] = []
     for i, raw in enumerate(source):
         s = raw.strip()
         if not s:
@@ -48,7 +48,7 @@ def _read_urls(source: IO[str]) -> List[str]:
     return urls
 
 
-def _resolve_api_key(flag_value: Optional[str]) -> str:
+def _resolve_api_key(flag_value: str | None) -> str:
     key = flag_value or os.environ.get("BULKURLCHECKER_API_KEY")
     if not key:
         raise click.ClickException(
@@ -151,9 +151,9 @@ def cli() -> None:
     help="Suppress the progress line on stderr.",
 )
 def check(
-    source: Optional[IO[str]],
-    inline: Optional[str],
-    api_key: Optional[str],
+    source: IO[str] | None,
+    inline: str | None,
+    api_key: str | None,
     output_format: str,
     wait_seconds: int,
     only_broken: bool,
@@ -222,7 +222,7 @@ def check(
 @click.argument("source", type=click.File("r"), required=False)
 @click.option("--urls", "-u", "inline", help="Comma-separated URLs.")
 @click.option("--api-key", envvar="BULKURLCHECKER_API_KEY")
-def submit(source: Optional[IO[str]], inline: Optional[str], api_key: Optional[str]) -> None:
+def submit(source: IO[str] | None, inline: str | None, api_key: str | None) -> None:
     """Submit URLs and print the job id. Doesn't wait for completion."""
     if inline and source:
         raise click.UsageError("Pass URLs via --urls OR a file/stdin, not both.")
@@ -242,7 +242,7 @@ def submit(source: Optional[IO[str]], inline: Optional[str], api_key: Optional[s
 @cli.command()
 @click.argument("job_id")
 @click.option("--api-key", envvar="BULKURLCHECKER_API_KEY")
-def status(job_id: str, api_key: Optional[str]) -> None:
+def status(job_id: str, api_key: str | None) -> None:
     """Print the current status of a job."""
     key = _resolve_api_key(api_key)
     job = Client(api_key=key).get_job_status(job_id)
@@ -260,7 +260,7 @@ def status(job_id: str, api_key: Optional[str]) -> None:
     default="csv", show_default=True,
 )
 @click.option("--api-key", envvar="BULKURLCHECKER_API_KEY")
-def results(job_id: str, output_format: str, api_key: Optional[str]) -> None:
+def results(job_id: str, output_format: str, api_key: str | None) -> None:
     """Fetch full results for a completed job and write to stdout."""
     key = _resolve_api_key(api_key)
     client = Client(api_key=key)

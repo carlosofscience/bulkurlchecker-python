@@ -27,7 +27,7 @@ from __future__ import annotations
 import platform
 import sys
 import time
-from typing import Iterable, Iterator, List, Optional
+from typing import Iterable, Iterator
 
 import requests
 
@@ -43,7 +43,6 @@ from .exceptions import (
     ValidationError,
 )
 from .types import CheckResults, JobSummary, URLResult
-
 
 DEFAULT_BASE_URL = "https://api.bulkurlchecker.com"
 DEFAULT_TIMEOUT = 30.0  # seconds, per HTTP call (not the wait endpoint)
@@ -94,7 +93,7 @@ class Client:
         *,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = DEFAULT_TIMEOUT,
-        session: Optional[requests.Session] = None,
+        session: requests.Session | None = None,
     ) -> None:
         if not api_key:
             raise AuthenticationError("api_key must be a non-empty string")
@@ -155,7 +154,7 @@ class Client:
         *,
         limit: int = 1000,
         offset: int = 0,
-    ) -> List[URLResult]:
+    ) -> list[URLResult]:
         """Fetch one page of results. See ``iter_results()`` for streaming."""
         params = {"limit": int(limit), "offset": int(offset)}
         body = self._request("GET", f"/api/v2/jobs/{job_id}/results", params=params)
@@ -167,7 +166,7 @@ class Client:
         job_id: str,
         *,
         page_size: int = 1000,
-    ) -> Iterator[List[URLResult]]:
+    ) -> Iterator[list[URLResult]]:
         """Stream all results for a job in pages.
 
         Yields lists of ``URLResult`` of at most ``page_size`` per
@@ -212,8 +211,8 @@ class Client:
 
     # ---- Internals ----
 
-    def _validate_urls(self, urls: Iterable[str]) -> List[str]:
-        out: List[str] = []
+    def _validate_urls(self, urls: Iterable[str]) -> list[str]:
+        out: list[str] = []
         for u in urls:
             s = (u or "").strip()
             if not s:
@@ -251,7 +250,7 @@ class Client:
         # Error path — try to extract the canonical {error: {code, message}}
         # envelope. Fall back to a generic message if the body isn't JSON.
         message = f"HTTP {resp.status_code} on {resp.request.method} {resp.url}"
-        code: Optional[str] = None
+        code: str | None = None
         details = None
         try:
             body = resp.json()

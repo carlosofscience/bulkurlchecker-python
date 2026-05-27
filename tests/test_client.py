@@ -18,7 +18,6 @@ from bulkurlchecker import (
     ValidationError,
 )
 
-
 API = "https://api.bulkurlchecker.com"
 
 

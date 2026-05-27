@@ -21,7 +21,7 @@ from bulkurlchecker import (
 def load_urls_from_csv(path: str) -> list[str]:
     """Read URLs from the first column of a CSV (header optional)."""
     out: list[str] = []
-    with open(path, "r", newline="", encoding="utf-8") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         for i, row in enumerate(reader):
             if not row:

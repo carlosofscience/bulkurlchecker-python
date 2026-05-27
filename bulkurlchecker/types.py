@@ -9,7 +9,7 @@ https://api.bulkurlchecker.com/openapi.json.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -23,12 +23,12 @@ class JobSummary:
     credits_allocated: int = 0
     duplicates_removed: int = 0
     invalid_urls_rejected: int = 0
-    created_at: Optional[str] = None
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
+    created_at: str | None = None
+    started_at: str | None = None
+    completed_at: str | None = None
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "JobSummary":
+    def from_dict(cls, d: dict[str, Any]) -> JobSummary:
         return cls(
             job_id=str(d.get("job_id") or d.get("id")),
             status=str(d.get("status") or "pending"),
@@ -48,17 +48,17 @@ class URLResult:
     """One URL check result. Shape mirrors the API response."""
 
     url: str
-    final_url: Optional[str] = None
-    status_code: Optional[int] = None
-    response_time_ms: Optional[int] = None
-    redirect_chain: List[str] = field(default_factory=list)
+    final_url: str | None = None
+    status_code: int | None = None
+    response_time_ms: int | None = None
+    redirect_chain: list[str] = field(default_factory=list)
     is_broken: bool = False
     is_soft_404: bool = False
-    error_code: Optional[str] = None
-    content_type: Optional[str] = None
+    error_code: str | None = None
+    content_type: str | None = None
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "URLResult":
+    def from_dict(cls, d: dict[str, Any]) -> URLResult:
         # The API returns slightly different field names depending on
         # the endpoint version; this normalizer keeps the SDK shape
         # stable across server-side changes.
@@ -86,8 +86,8 @@ class CheckResults:
     completed_urls: int
     duplicates_removed: int
     invalid_urls_rejected: int
-    completed_at: Optional[str]
-    results: List[URLResult]
+    completed_at: str | None
+    results: list[URLResult]
 
     @property
     def is_complete(self) -> bool:
@@ -95,16 +95,16 @@ class CheckResults:
         return self.status == "completed" and not self.timed_out
 
     @property
-    def broken(self) -> List[URLResult]:
+    def broken(self) -> list[URLResult]:
         """All results where the engine marked the URL broken."""
         return [r for r in self.results if r.is_broken]
 
     @property
-    def soft_404s(self) -> List[URLResult]:
+    def soft_404s(self) -> list[URLResult]:
         return [r for r in self.results if r.is_soft_404]
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "CheckResults":
+    def from_dict(cls, d: dict[str, Any]) -> CheckResults:
         return cls(
             job_id=str(d.get("job_id") or ""),
             status=str(d.get("status") or ""),
