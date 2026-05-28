@@ -96,16 +96,22 @@ def test_submit_returns_job_summary(client):
 
 @responses.activate
 def test_iter_results_paginates(client):
-    # First page: 1000 items
+    # First page: 1000 items + next_cursor signals more
     responses.get(
         f"{API}/api/v2/jobs/job-xyz/results",
-        json={"items": [{"url": f"https://e/{i}", "status_code": 200} for i in range(1000)]},
+        json={
+            "items": [{"url": f"https://e/{i}", "status_code": 200} for i in range(1000)],
+            "next_cursor": "cursor-abc",
+        },
         status=200,
     )
-    # Second page: 200 items (less than page_size => stop)
+    # Second page: 200 items, next_cursor: null => stop
     responses.get(
         f"{API}/api/v2/jobs/job-xyz/results",
-        json={"items": [{"url": f"https://e/{i}", "status_code": 200} for i in range(1000, 1200)]},
+        json={
+            "items": [{"url": f"https://e/{i}", "status_code": 200} for i in range(1000, 1200)],
+            "next_cursor": None,
+        },
         status=200,
     )
 

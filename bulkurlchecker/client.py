@@ -181,12 +181,56 @@ class Client:
         *,
         limit: int = 1000,
         offset: int = 0,
+        cursor: str | None = None,
     ) -> list[URLResult]:
-        """Fetch one page of results. See ``iter_results()`` for streaming."""
-        params = {"limit": int(limit), "offset": int(offset)}
+        """Fetch one page of results. See ``iter_results()`` for streaming.
+
+        ``cursor`` (optional): pass the previous response's
+        ``next_cursor`` to get stable id-asc pagination. When ``cursor``
+        is set, ``offset`` is ignored. Use this for full exports of big
+        jobs where offset pagination's shifting results would be a
+        problem; ``iter_results()`` uses cursor mode by default.
+        """
+        params: dict[str, Any] = {"limit": int(limit)}
+        if cursor is not None:
+            params["cursor"] = cursor
+        else:
+            params["offset"] = int(offset)
         body = self._request("GET", f"/api/v2/jobs/{job_id}/results", params=params)
         items = body.get("items") or body.get("results") or []
         return [URLResult.from_dict(r) for r in items]
+
+    def get_results_page(
+        self,
+        job_id: str,
+        *,
+        limit: int = 1000,
+        cursor: str | None = None,
+    ) -> tuple[list[URLResult], str | None]:
+        """
+        Cursor-paginated fetch that also returns the next cursor.
+
+        Returns a tuple ``(results, next_cursor)``. ``next_cursor`` is
+        ``None`` when there are no more pages. Pair with a loop:
+
+            results, cursor = [], None
+            while True:
+                page, cursor = client.get_results_page(job_id, cursor=cursor)
+                results.extend(page)
+                if cursor is None:
+                    break
+
+        For most callers, ``iter_results()`` is more ergonomic.
+        """
+        params: dict[str, Any] = {"limit": int(limit)}
+        if cursor is not None:
+            params["cursor"] = cursor
+        body = self._request("GET", f"/api/v2/jobs/{job_id}/results", params=params)
+        items = body.get("items") or body.get("results") or []
+        return (
+            [URLResult.from_dict(r) for r in items],
+            body.get("next_cursor"),
+        )
 
     def iter_results(
         self,
@@ -196,10 +240,31 @@ class Client:
     ) -> Iterator[list[URLResult]]:
         """Stream all results for a job in pages.
 
-        Yields lists of ``URLResult`` of at most ``page_size`` per
-        iteration. Iteration ends when the server returns an empty or
-        short page.
+        Uses cursor pagination under the hood for stable iteration even
+        if results are still landing while you read. Yields lists of
+        ``URLResult`` of at most ``page_size`` per iteration. Stops when
+        the server returns ``next_cursor: null``.
         """
+        cursor: str | None = None
+        while True:
+            batch, cursor = self.get_results_page(
+                job_id, limit=page_size, cursor=cursor,
+            )
+            if not batch:
+                return
+            yield batch
+            if cursor is None:
+                return
+
+    # Legacy offset-based iterator. Kept for callers who want explicit
+    # offset/limit semantics; new code should use iter_results() which
+    # is cursor-based.
+    def _iter_results_offset(
+        self,
+        job_id: str,
+        *,
+        page_size: int = 1000,
+    ) -> Iterator[list[URLResult]]:
         offset = 0
         while True:
             batch = self.get_results(job_id, limit=page_size, offset=offset)

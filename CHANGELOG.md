@@ -8,6 +8,23 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-28
+
+### Added
+- `cursor` parameter on `client.get_results()` and a new
+  `client.get_results_page()` that returns `(results, next_cursor)`.
+  Cursor pagination is stable under concurrent writes — page contents
+  don't shift if a slow-checking URL finishes mid-export.
+- `client.iter_results()` now uses cursor pagination under the hood for
+  the same stability benefit. No API change for callers.
+
+### Changed
+- The internal pagination strategy for `iter_results()` shifted from
+  offset-based to cursor-based. Behavior is identical for normal
+  callers; if you were relying on the precise request sequence the
+  iterator emits (e.g., via a mocked transport), the second and later
+  requests now include a `cursor=` query param instead of an `offset=`.
+
 ## [0.3.0] - 2026-05-28
 
 ### Added
