@@ -8,6 +8,31 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-28
+
+### Fixed
+- `client.iter_results()` no longer stops after the first page. The
+  iterator now bootstraps cursor pagination by sending an empty-string
+  cursor on the first call (server treats this as "begin cursor
+  stream"), so the response carries a real `next_cursor` when more
+  pages exist. Before this fix, any job with more than one page would
+  return only the first page's rows.
+- `client.check_urls(urls, wait_seconds=N)` now extends the HTTP
+  timeout to `max(client.timeout, N + 10)` automatically. The default
+  configuration (`Client(api_key=...)` + `check_urls(urls)`) used to
+  race the 30s HTTP timeout against the 60s server-side wait,
+  producing a `TimeoutError` on the very first call. Calls now wait
+  the full `wait_seconds`.
+- 409 conflict responses (Idempotency-Key reused with a different
+  body) now raise `ValidationError` to match the README and blog
+  documentation, rather than the generic `BulkURLCheckerError`. The
+  `code` field is still set to `"idempotency_key_mismatch"` so callers
+  can distinguish from input-validation 400s.
+
+### Changed
+- `ValidationError` docstring updated to note that it covers 409
+  conflicts in addition to 400 / 422.
+
 ## [0.5.0] - 2026-05-28
 
 ### Added

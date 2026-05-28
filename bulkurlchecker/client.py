@@ -138,9 +138,16 @@ class Client:
         payload = {"urls": urls_list}
         params = {"wait_seconds": int(wait_seconds), "poll_interval": float(poll_interval)}
         headers = {"Idempotency-Key": idempotency_key} if idempotency_key else None
+        # The HTTP timeout must be longer than the server-side wait,
+        # otherwise the client gives up while the server is still
+        # legitimately processing. Add a 10s buffer for connect + tail
+        # response time. Caller's explicit Client(timeout=) wins if
+        # higher.
+        effective_timeout = max(self.timeout, float(wait_seconds) + 10.0)
         body = self._request(
             "POST", "/api/v2/jobs/wait",
             json=payload, params=params, headers=headers,
+            _timeout_override=effective_timeout,
         )
         return CheckResults.from_dict(body)
 
@@ -245,7 +252,13 @@ class Client:
         ``URLResult`` of at most ``page_size`` per iteration. Stops when
         the server returns ``next_cursor: null``.
         """
-        cursor: str | None = None
+        # Start with an empty-string cursor as the "begin cursor stream"
+        # sentinel. Server treats this as "engage cursor mode without an
+        # anchor" so the first response carries a real `next_cursor`
+        # value when more pages exist. Sending None instead would land
+        # us in offset mode and the iterator would terminate after one
+        # page (the bug fixed in 0.5.1).
+        cursor: str | None = ""
         while True:
             batch, cursor = self.get_results_page(
                 job_id, limit=page_size, cursor=cursor,
@@ -320,8 +333,11 @@ class Client:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         url = f"{self.base_url}{path}"
+        # Per-call timeout override -- used by check_urls() so that
+        # `wait_seconds` doesn't race the default 30s HTTP timeout.
+        timeout = kwargs.pop("_timeout_override", None) or self.timeout
         try:
-            resp = self._session.request(method, url, timeout=self.timeout, **kwargs)
+            resp = self._session.request(method, url, timeout=timeout, **kwargs)
         except requests.Timeout as e:
             raise TimeoutError(f"HTTP {method} {path} timed out after {self.timeout}s") from e
         except requests.RequestException as e:
@@ -396,7 +412,13 @@ class Client:
                 message, status_code=status, code=code,
                 request_id=request_id, details=details,
             )
-        if status in (400, 422):
+        if status in (400, 422, 409):
+            # 409 covers Idempotency-Key mismatch (same key, different
+            # body). Raising ValidationError matches the SDK README +
+            # blog-post promise; the server's error.code field
+            # ("idempotency_key_mismatch") is preserved on the
+            # exception's `.code` attribute so callers can branch on
+            # the specific cause.
             raise ValidationError(
                 message, status_code=status, code=code,
                 request_id=request_id, details=details,

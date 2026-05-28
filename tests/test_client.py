@@ -119,6 +119,21 @@ def test_iter_results_paginates(client):
     assert len(batches) == 2
     assert sum(len(b) for b in batches) == 1200
 
+    # Regression for the 0.5.1 cursor-bootstrap fix: the FIRST request
+    # must include the `cursor` query param so the server engages
+    # cursor mode. Without the param the server falls back to offset
+    # mode and never emits next_cursor, causing iter_results to
+    # terminate after one page (the bug fixed in 0.5.1).
+    first_req = responses.calls[0].request
+    assert "cursor=" in first_req.url, (
+        f"first iter_results call must send cursor=; got {first_req.url}"
+    )
+    # Second call should carry the cursor returned by the first page.
+    second_req = responses.calls[1].request
+    assert "cursor=cursor-abc" in second_req.url, (
+        f"second call must echo back the previous next_cursor; got {second_req.url}"
+    )
+
 
 @responses.activate
 def test_401_raises_authentication_error(client):

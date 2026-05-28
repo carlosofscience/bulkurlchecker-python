@@ -62,7 +62,13 @@ class QuotaError(BulkURLCheckerError):
 
 
 class ValidationError(BulkURLCheckerError):
-    """400 / 422. The request was malformed (bad URLs, too many URLs, etc)."""
+    """400 / 422 / 409. The request was malformed or in conflict with prior state.
+
+    Catches the usual input-validation failures (bad URLs, too many
+    URLs, missing fields) AND the 409 conflict raised when an
+    Idempotency-Key is reused with a different body. Inspect ``code``
+    to distinguish; e.g. ``"idempotency_key_mismatch"`` for the 409 case.
+    """
 
 
 class NotFoundError(BulkURLCheckerError):
