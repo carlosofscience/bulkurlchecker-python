@@ -96,6 +96,26 @@ for batch in client.iter_results(job.job_id, page_size=1000):
             print(r.url, r.status_code)
 ```
 
+## Safe retries with `idempotency_key`
+
+Pass an idempotency key on `submit()` or `check_urls()` to make retries safe under network failures. The server caches the response for 24 hours; a retry with the same key + same body returns the original result without creating a duplicate job.
+
+```python
+import uuid
+
+key = str(uuid.uuid4())  # generate once per logical request
+
+# First call: creates a new job.
+job = client.submit(urls, idempotency_key=key)
+
+# Network blip, no clean response received? Just retry with the same
+# key -- you'll get the SAME job summary back, no duplicate submission.
+same_job = client.submit(urls, idempotency_key=key)
+# job.job_id == same_job.job_id
+```
+
+Same `idempotency_key` + different `urls` returns `409 Conflict` (raised as `ValidationError`) so client bugs that reuse a key against a new payload are caught loudly instead of silently mapping to the wrong cached response.
+
 ## Error handling
 
 All errors derive from `BulkURLCheckerError`. Catch specific subclasses when you want to branch on the failure mode:
