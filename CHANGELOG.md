@@ -8,6 +8,17 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-28
+
+### Added
+- `bulkurlchecker.verify_signature(raw_body, header, secret)` for
+  verifying incoming `Bulkurlchecker-Signature` headers on webhook
+  receivers. Raises `InvalidSignatureError` on missing/malformed/
+  expired/tampered signatures.
+- `InvalidSignatureError` exception (subclass of `BulkURLCheckerError`).
+- 5-minute default replay-attack tolerance window. Override via
+  `tolerance_seconds=`.
+
 ## [0.4.0] - 2026-05-28
 
 ### Added

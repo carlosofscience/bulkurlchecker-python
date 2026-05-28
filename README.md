@@ -116,6 +116,39 @@ same_job = client.submit(urls, idempotency_key=key)
 
 Same `idempotency_key` + different `urls` returns `409 Conflict` (raised as `ValidationError`) so client bugs that reuse a key against a new payload are caught loudly instead of silently mapping to the wrong cached response.
 
+## Receiving webhooks
+
+When a job finishes, we POST to your registered endpoint with a signed payload. Verify the signature before trusting the body — anyone who knows your endpoint URL can otherwise send fake events.
+
+```python
+from flask import Flask, request
+from bulkurlchecker import verify_signature, InvalidSignatureError
+
+SECRET = os.environ["MY_WEBHOOK_SECRET"]  # the signing_secret we showed once
+
+app = Flask(__name__)
+
+@app.route("/webhook/bulkurlchecker", methods=["POST"])
+def webhook():
+    try:
+        verify_signature(
+            request.get_data(),  # RAW bytes — not request.get_json()
+            request.headers.get("Bulkurlchecker-Signature", ""),
+            SECRET,
+        )
+    except InvalidSignatureError:
+        return "", 401
+    event = request.get_json()
+    if event["type"] == "job.completed":
+        job_id = event["data"]["job_id"]
+        # ... fetch results, update your DB, ping Slack, etc ...
+    return "", 200
+```
+
+Register endpoints + get secrets at https://app.bulkurlchecker.com/dashboard/webhooks (or via `POST /api/v2/webhooks/endpoints`).
+
+`verify_signature()` enforces a 5-minute timestamp tolerance by default to defeat replays. Tune via `tolerance_seconds=`.
+
 ## Error handling
 
 All errors derive from `BulkURLCheckerError`. Catch specific subclasses when you want to branch on the failure mode:

@@ -27,6 +27,7 @@ from .exceptions import (
     ValidationError,
 )
 from .types import CheckResults, JobSummary, URLResult
+from .webhooks import InvalidSignatureError, verify_signature
 
 __all__ = [
     "__version__",
@@ -42,4 +43,6 @@ __all__ = [
     "NotFoundError",
     "ServerError",
     "TimeoutError",
+    "verify_signature",
+    "InvalidSignatureError",
 ]
