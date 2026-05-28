@@ -8,6 +8,16 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-28
+
+### Added
+- `idempotency_key` parameter on `client.submit()` and
+  `client.check_urls()`. Pass a UUIDv4 (or any unique string) to make
+  retries safe. Same key + same body within 24h returns the original
+  response without creating a duplicate job. Same key + different
+  body returns `ValidationError`. Sent as the `Idempotency-Key` header
+  per the IETF draft / Stripe convention.
+
 ### Changed
 - Dropped support for Python 3.8 and 3.9 (both EOL: October 2024 and
   October 2025 respectively). Minimum supported version is now Python

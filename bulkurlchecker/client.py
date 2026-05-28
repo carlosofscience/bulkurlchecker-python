@@ -116,6 +116,7 @@ class Client:
         *,
         wait_seconds: int = 60,
         poll_interval: float = 2.0,
+        idempotency_key: str | None = None,
     ) -> CheckResults:
         """Submit URLs and block until results are ready (or timeout).
 
@@ -126,22 +127,47 @@ class Client:
         For lists > ~2,000 URLs, the wait will likely time out — use
         ``submit()`` + ``iter_results()`` instead so you're not
         holding an HTTP connection open for minutes.
+
+        ``idempotency_key`` (optional): pass a UUIDv4 (or any unique
+        string) to make retries safe. If a retry hits the server with
+        the same key + same body within 24h, the original response is
+        returned without re-submitting. Same key + different body
+        returns ``ValidationError``.
         """
         urls_list = self._validate_urls(urls)
         payload = {"urls": urls_list}
         params = {"wait_seconds": int(wait_seconds), "poll_interval": float(poll_interval)}
-        body = self._request("POST", "/api/v2/jobs/wait", json=payload, params=params)
+        headers = {"Idempotency-Key": idempotency_key} if idempotency_key else None
+        body = self._request(
+            "POST", "/api/v2/jobs/wait",
+            json=payload, params=params, headers=headers,
+        )
         return CheckResults.from_dict(body)
 
-    def submit(self, urls: Iterable[str]) -> JobSummary:
+    def submit(
+        self,
+        urls: Iterable[str],
+        *,
+        idempotency_key: str | None = None,
+    ) -> JobSummary:
         """Submit a job and return immediately with the job id.
 
         Use this when your URL list is big enough that
         ``check_urls()`` would time out, or when you want to do
         something else while the engine works.
+
+        ``idempotency_key`` (optional): pass a UUIDv4 (or any unique
+        string) to make retries safe. If a retry hits the server with
+        the same key + same body within 24h, the original ``JobSummary``
+        (same ``job_id``) is returned without creating a duplicate job.
+        Same key + different body returns ``ValidationError``.
         """
         urls_list = self._validate_urls(urls)
-        body = self._request("POST", "/api/v2/jobs", json={"urls": urls_list})
+        headers = {"Idempotency-Key": idempotency_key} if idempotency_key else None
+        body = self._request(
+            "POST", "/api/v2/jobs",
+            json={"urls": urls_list}, headers=headers,
+        )
         return JobSummary.from_dict(body)
 
     def get_job_status(self, job_id: str) -> JobSummary:
