@@ -8,6 +8,16 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-12
+
+Docs-only release: no code changes. PyPI only refreshes a project's page on a
+new version, so the README fix below needs one.
+
+### Changed
+- README: top-up pack credits **roll over**. It previously said credits
+  "never expire", which is not how the policy is worded.
+- README: per-plan scheduled-check caps removed from the pricing summary.
+
 ## [0.5.1] - 2026-05-28
 
 ### Fixed
