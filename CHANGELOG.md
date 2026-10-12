@@ -8,6 +8,18 @@ releases; they'll always be noted under "Changed" or "Removed."
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-10-12
+
+Docs-only release: no code changes. Supersedes 0.5.2, whose README fix was
+incomplete.
+
+### Changed
+- README pricing rewritten from the live terms. It said "Free tier: 300 URL
+  checks. No signup required", which is wrong twice: the 300 monthly checks
+  need an account, and every new account's first month is 15,000 checks.
+- First successful API or SDK integration grows the trial to a month of Pro;
+  the README now says so.
+
 ## [0.5.2] - 2026-10-12
 
 Docs-only release: no code changes. PyPI only refreshes a project's page on a

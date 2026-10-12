@@ -200,14 +200,17 @@ If you've already lost a weekend to httpx + proxy rotation, you know what we're 
 
 ## Pricing
 
-- **Free tier:** 300 URL checks. No signup required.
-- **Starter:** $9/month or $90/year (~17% off) — 15,000 URLs/month
-- **Pro:** $29/month or $290/year — 50,000 URLs/month, 5 scheduled checks, daily monitoring
-- **Agency:** $99/month or $990/year — 200,000 URLs/month, Slack + webhook alerts
+- **First month on us:** 15,000 URL checks on the Starter plan, no credit card.
+  The first time an API or SDK integration runs successfully, the trial grows
+  to a month of Pro: 50,000 URL checks, once per account.
+- **After that:** 300 URL checks a month are included on every account.
+- **Starter:** $9/month or $90/year, 15,000 URLs/month
+- **Pro:** $29/month or $290/year, 50,000 URLs/month
+- **Agency:** $99/month or $990/year, 200,000 URLs/month
 
-Top-up credit packs available beyond the monthly pool. Pack credits roll over.
-
-Full pricing: https://bulkurlchecker.com/#pricing
+Scheduled checks, with email, Slack and webhook alerts, are included on every
+plan. One-time credit packs start at $5 for 3,000 checks, and pack credits
+roll over. Current prices: https://bulkurlchecker.com/#pricing
 
 ## Links
 
